@@ -1,4 +1,4 @@
-name: Java CI – IntelliJ-projekt
+name: Java CI – Bysen (IntelliJ)
 
 on:
   push:
@@ -9,40 +9,31 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'          # ändra till 25 om ni verkligen testar JDK 25
+          java-version: '21'
 
-      - name: Download JUnit 5 console runner
+      - name: Hämta JUnit 5 Console Runner
         run: |
           curl -L -o junit-platform-console-standalone.jar \
-            https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.10.3/junit-platform-console-standalone-1.10.3.jar
+            https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.10.3.jar
 
-      - name: Compile main sources
+      - name: Kompilera main-källor
         run: |
           mkdir -p out
-          javac -d out $(find src -name "*.java")
+          javac -d out $(find Bysen/Bysen/src -name "*.java")
 
-      - name: Compile test sources
+      - name: Kompilera test-källor
         run: |
           javac -cp "out:junit-platform-console-standalone.jar" \
-                -d out $(find Test -name "*.java")
+                -d out $(find Bysen/Bysen/Test -name "*.java")
 
-      - name: Run tests
+      - name: Kör tester
         run: |
           java -jar junit-platform-console-standalone.jar \
                --class-path out \
                --scan-class-path
-
-      - name: Upload test result
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: surefire-reports
