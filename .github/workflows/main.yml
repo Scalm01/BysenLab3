@@ -1,4 +1,4 @@
-name: Java CI – Bysen (med uppladdade JUnit-jar:er)
+name: Java CI – Bysen (JUnit 5 only)
 
 on:
   push:
@@ -11,28 +11,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checka ut koden
       - uses: actions/checkout@v4
 
+      # 2. Installera JDK 21
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
 
-      # 1. Kompilera main-källor
+      # 3. Ladda ner JUnit 5 “fat” jar (innehåller allt)
+      - name: Download JUnit 5 Console Runner
+        run: |
+          wget -O junit-platform-console-standalone.jar \
+            https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.10.3/junit-platform-console-standalone-1.10.3.jar
+          ls -lh junit-platform-console-standalone.jar
+
+      # 4. Kompilera main-källkod
       - name: Compile main sources
         run: |
           mkdir -p out
           javac -d out $(find Bysen_grupp1/Bysen/Bysen/src -name "*.java")
 
-      # 2. Kompilera test-källor (beroende av main + era uppladdade jar:er)
+      # 5. Kompilera test-källkod (med JUnit på classpath)
       - name: Compile test sources
         run: |
-          javac -cp "out:Bysen_grupp1/Bysen/lib/*" \
+          javac -cp "out:junit-platform-console-standalone.jar" \
                 -d out $(find Bysen_grupp1/Bysen/Bysen/Test -name "*.java")
 
-      # 3. Kör JUnit 5 med era egna jar:er
+      # 6. Kör alla JUnit 5-tester
       - name: Run tests
         run: |
-          java -cp "out:Bysen_grupp1/Bysen/lib/*" \
-               org.junit.platform.console.ConsoleLauncher \
+          java -jar junit-platform-console-standalone.jar \
+               --class-path out \
                --scan-class-path
+               
