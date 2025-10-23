@@ -1,4 +1,4 @@
-name: Java CI – Bysen (IntelliJ)
+name: Java CI – Bysen (IntelliJ-projekt)
 
 on:
   push:
@@ -9,31 +9,46 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
+      # 1. Checka ut koden
       - uses: actions/checkout@v4
 
+      # 2. Installera JDK 21 (Temurin)
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Hämta JUnit 5 Console Runner
+      # 3. Hämta JUnit 5 Console Runner
+      - name: Download JUnit 5 Console Runner
         run: |
           curl -L -o junit-platform-console-standalone.jar \
             https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.10.3.jar
 
-      - name: Kompilera main-källor
+      # 4. Kompilera main-källor
+      - name: Compile main sources
         run: |
           mkdir -p out
-          javac -d out $(find Bysen/Bysen/src -name "*.java")
+          javac -d out $(find Bysen_grupp1/Bysen/Bysen/src -name "*.java")
 
-      - name: Kompilera test-källor
+      # 5. Kompilera test-källor
+      - name: Compile test sources
         run: |
           javac -cp "out:junit-platform-console-standalone.jar" \
-                -d out $(find Bysen/Bysen/Test -name "*.java")
+                -d out $(find Bysen_grupp1/Bysen/Bysen/Test -name "*.java")
 
-      - name: Kör tester
+      # 6. Kör tester
+      - name: Run tests
         run: |
           java -jar junit-platform-console-standalone.jar \
                --class-path out \
                --scan-class-path
+
+      # 7. (Valfritt) spara test-resultat
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: out/
